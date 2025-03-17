@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fetch Chapter.txt</title>
+</head>
+<body>
+    <h1>Chapter.txt Contents</h1>
+    <pre id="content"></pre>
+
+    <script>
+        async function fetchChapter() {
+            try {
+                console.log('Fetching Chapter.txt...');
+                const response = await fetch('Chapter1.txt'); // Ensure the correct file name
+                console.log('Response:', response);
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+
+                const text = await response.text();
+                console.log('File content:', text);
+
+                document.getElementById('content').textContent = text;
+            } catch (error) {
+                console.error('There was a problem with the fetch operation:', error);
+            }
+        }
+
+        fetchChapter();
+    </script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 1: The Dark World</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #00f0ff;
+            --secondary-color: #ff6b6b;
+            --bg-dark: #0a0a1a;
+            --text-light: #e6f1ff;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            font-family: 'Roboto', sans-serif;
+            color: var(--text-light);
+            overflow-x: hidden;
+        }
+        #bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            background: var(--bg-dark);
+        }
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
+            padding: 20px;
+            background: rgba(10, 10, 26, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            transition: transform 0.3s ease-in-out;
+        }
+        .nav.hidden {
+            transform: translateY(-100%);
+        }
+        .nav a {
+            color: var(--primary-color);
+            text-decoration: none;
+            margin: 0 15px;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        .nav a::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--secondary-color);
+            transition: width 0.3s ease;
+        }
+        .nav a:hover {
+            color: var(--secondary-color);
+        }
+        .nav a:hover::before {
+            width: 100%;
+        }
+        .chapter {
+            padding: 100px 20px;
+            background: rgba(10, 10, 26, 0.9);
+            border-top: 1px solid var(--primary-color);
+        }
+        .chapter-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .chapter h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+        }
+        #content {
+            min-height: 100vh;
+            padding: 20px;
+            text-align: left;
+            line-height: 1.8;
+            color: #f8ff6b8c;
+            font-size: 1.2rem;
+        }
+        .text-line {
+            margin-bottom: 1.5rem;
+        }
+        #particle-cursor {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <div id="bg-container"></div>
+    <div id="particle-cursor"></div>
+
+    <nav class="nav">
+        <a href="../../../index.html">Home</a>
+        <a href="#chapter">Chapter</a>
+        <a href="../../feedback.html">Feedback</a>
+        <a href="../../about.html">About</a>
+    </nav>
+
+    <section id="chapter" class="chapter">
+        <div class="chapter-content">
+            <h2>Chapter 1: The Dark World</h2>
+            <div id="content"></div>
+        </div>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Fetch the chapter content from the text file
+        async function fetchChapter() {
+            try {
+                const response = await fetch('./Chapter1.txt');
+                if (!response.ok) {
+                    throw new Error('File not found or unable to load.');
+                }
+                const text = await response.text();
+                return text.split('\n').filter(line => line.trim() !== ''); // Split text into lines and remove empty lines
+            } catch (error) {
+                console.error('Error fetching the file:', error);
+                return ['Failed to load the chapter.']; // Fallback content
+            }
+        }
+
+        // Function to add a line to the content div
+        function addLine(line) {
+            const lineElement = document.createElement('p');
+            lineElement.className = 'text-line';
+            lineElement.textContent = line;
+            document.getElementById('content').appendChild(lineElement);
+        }
+
+        // Initialize the page with the fetched text
+        window.addEventListener('DOMContentLoaded', async () => {
+            const chapterText = await fetchChapter(); // Fetch the chapter content
+
+            // Add all lines to the document
+            chapterText.forEach(line => {
+                addLine(line);
+            });
+        });
+
+        // Background Particle System
+        const scene = new THREE.Scene();
+        const container = document.getElementById('bg-container');
+
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        camera.position.z = 15;
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true });
+        renderer.setSize(width, height);
+        container.appendChild(renderer.domElement);
+
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 5000;
+
+        const posArray = new Float32Array(particlesCount * 3);
+        const velocityArray = new Float32Array(particlesCount * 3);
+
+        for (let i = 0; i < particlesCount * 3; i += 3) {
+            const radius = Math.random() * 10;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.random() * Math.PI;
+
+            posArray[i] = radius * Math.sin(phi) * Math.cos(theta);
+            posArray[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
+            posArray[i + 2] = radius * Math.cos(phi);
+
+            velocityArray[i] = (Math.random() - 0.5) * 0.03;
+            velocityArray[i + 1] = (Math.random() - 0.5) * 0.03;
+            velocityArray[i + 2] = (Math.random() - 0.5) * 0.03;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.07,
+            color: 0x00f0ff,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending
+        });
+
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        function animateParticles() {
+            const positions = particlesMesh.geometry.attributes.position.array;
+
+            for (let i = 0; i < positions.length; i += 3) {
+                positions[i] += velocityArray[i];
+                positions[i + 1] += velocityArray[i + 1];
+                positions[i + 2] += velocityArray[i + 2];
+
+                const distanceFromCenter = Math.sqrt(
+                    positions[i] ** 2 +
+                    positions[i + 1] ** 2 +
+                    positions[i + 2] ** 2
+                );
+
+                if (distanceFromCenter > 10) {
+                    const scale = 10 / distanceFromCenter;
+                    positions[i] *= scale;
+                    positions[i + 1] *= scale;
+                    positions[i + 2] *= scale;
+                }
+            }
+
+            particlesMesh.geometry.attributes.position.needsUpdate = true;
+            particlesMesh.rotation.y += 0.002;
+        }
+
+        // Render loop
+        function animate() {
+            requestAnimationFrame(animate);
+            animateParticles();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        });
+    </script>
+</body>
+</html>
